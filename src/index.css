@@ -1,0 +1,9 @@
+/* src/index.css */
+@import "tailwindcss";
+
+/* Optional custom styles */
+body {
+    background-color: #f3f4f6;
+    color: #111827;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+}
