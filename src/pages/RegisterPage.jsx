@@ -1,13 +1,14 @@
 // src/pages/RegisterPage.jsx
 import { Link, useNavigate } from "react-router-dom";
 import {
-    Landmark, ArrowRight, User, Calendar, Phone,
+    ArrowRight, User, Calendar, Phone,
     MapPin, Home, Mail, Lock, Eye, EyeOff, Shield,
     ChevronDown, Globe, X, CheckCircle, AlertCircle, KeyRound, RefreshCw,
     TrendingUp, CreditCard, FileCheck
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import Swal from "sweetalert2";
+import ezLoanLogo from "../assets/logo.jpg"; // Add this import
 
 import regionData from "../address_data/region.json";
 import provinceData from "../address_data/province.json";
@@ -18,7 +19,7 @@ import cityZipMap from "../address_data/city_zip_map.json";
 const C = {
     bg: "#f4f6f5",
     surface: "#ffffff",
-    sidebar: "#1a2e1a",
+    sidebar: "#152515", // Changed from "#1a2e1a" to "#152515"
     green: "#2d7a2d",
     greenLight: "#4a9e4a",
     greenSoft: "rgba(45,122,45,.12)",
@@ -535,7 +536,6 @@ export default function RegisterPage() {
         setShowOTPModal(true);
     };
 
-    // ── FIX: Save to localStorage after successful registration ───────────────
     const handleOTPVerified = async () => {
         setShowOTPModal(false);
         try {
@@ -556,7 +556,6 @@ export default function RegisterPage() {
                 return;
             }
 
-            // ── Save full profile to localStorage so UserProfilePage can read it ──
             const saved = {
                 ...pendingPayload,
                 id: data.user.id,
@@ -581,7 +580,7 @@ export default function RegisterPage() {
 
         await Swal.fire({
             title: "Account Created!",
-            html: `<p style="font-size:.9rem;color:#5a7a5a;line-height:1.6;">Welcome to LoanShark, <strong style="color:#1a2e1a">${pendingPayload.firstName}</strong>!<br/>Your email has been verified and your account is ready.</p>`,
+            html: `<p style="font-size:.9rem;color:#5a7a5a;line-height:1.6;">Welcome to EzLoan, <strong style="color:#1a2e1a">${pendingPayload.firstName}</strong>!<br/>Your email has been verified and your account is ready.</p>`,
             icon: "success", confirmButtonText: "Go to Sign In", confirmButtonColor: C.sidebar,
             allowOutsideClick: false,
             customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" }
@@ -619,16 +618,16 @@ export default function RegisterPage() {
             {showOTPModal && <OTPModal email={formData.email} onVerified={handleOTPVerified} onClose={() => setShowOTPModal(false)} />}
             {showTermsModal && (
                 <Modal title="Terms of Service" onClose={() => setShowTermsModal(false)}>
-                    <ModalSection number="1" title="Acceptance of Terms">By accessing LoanShark's services, you agree to these Terms.</ModalSection>
-                    <ModalSection number="2" title="Loan Services">LoanShark provides a platform for loan management and processing.</ModalSection>
+                    <ModalSection number="1" title="Acceptance of Terms">By accessing EzLoan's services, you agree to these Terms.</ModalSection>
+                    <ModalSection number="2" title="Loan Services">EzLoan provides a platform for loan management and processing.</ModalSection>
                     <ModalSection number="3" title="Account Registration">You must provide accurate and complete information when creating an account.</ModalSection>
                     <ModalSection number="4" title="Eligibility">You must be at least 18 years old to use our services.</ModalSection>
                     <ModalSection number="5" title="Fees and Payments">Any fees will be clearly disclosed before transaction completion.</ModalSection>
                     <ModalSection number="6" title="Prohibited Activities">You agree not to engage in fraudulent or illegal activities.</ModalSection>
-                    <ModalSection number="7" title="Termination">LoanShark may suspend accounts that violate these terms.</ModalSection>
-                    <ModalSection number="8" title="Limitation of Liability">LoanShark is not liable for indirect or consequential damages.</ModalSection>
+                    <ModalSection number="7" title="Termination">EzLoan may suspend accounts that violate these terms.</ModalSection>
+                    <ModalSection number="8" title="Limitation of Liability">EzLoan is not liable for indirect or consequential damages.</ModalSection>
                     <ModalSection number="9" title="Changes to Terms">We may modify terms at any time. Continued use constitutes acceptance.</ModalSection>
-                    <ModalSection number="10" title="Contact">For questions: support@loanshark.ph</ModalSection>
+                    <ModalSection number="10" title="Contact">For questions: support@ezloan.ph</ModalSection>
                     <p style={{ fontSize: ".75rem", color: C.muted, marginTop: "1rem" }}>Last updated: March 6, 2026</p>
                 </Modal>
             )}
@@ -653,7 +652,7 @@ export default function RegisterPage() {
                 {/* ── LEFT PANEL ── */}
                 <div className="slide-in" style={{
                     width: "36%", minWidth: 300,
-                    background: `linear-gradient(160deg, ${C.sidebar} 0%, #2a4a2a 100%)`,
+                    background: C.sidebar, // Using #152515 as solid color
                     display: "flex", flexDirection: "column", padding: "3rem",
                     position: "relative", overflow: "hidden", flexShrink: 0,
                 }}>
@@ -662,10 +661,8 @@ export default function RegisterPage() {
                     <div style={{ position: "absolute", bottom: -30, right: 60, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
 
                     <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-                        <div style={{ width: 38, height: 38, borderRadius: 10, background: C.green, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(45,122,45,.4)" }}>
-                            <Landmark style={{ width: 19, height: 19, color: "#fff" }} />
-                        </div>
-                        <span style={{ fontFamily: "'Lora', serif", fontSize: "1.25rem", fontWeight: 600, color: "#fff" }}>LoanShark</span>
+                        <img src={ezLoanLogo} alt="EzLoan" style={{ height: 38, width: "auto", objectFit: "contain", display: "block" }} />
+                        <span style={{ fontFamily: "'Lora', serif", fontSize: "1.25rem", fontWeight: 600, color: "#fff" }}></span>
                     </div>
 
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative" }}>
@@ -674,10 +671,10 @@ export default function RegisterPage() {
                             <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#9de89d", letterSpacing: ".08em", textTransform: "uppercase" }}>Free Registration</span>
                         </div>
                         <h1 style={{ fontFamily: "'Lora', serif", fontSize: "2.2rem", fontWeight: 600, color: "#fff", lineHeight: 1.2, marginBottom: "1rem" }}>
-                            Join LoanShark<br />
+                            Join EzLoan<br />
                             <span style={{ color: "#9de89d" }}>in minutes.</span>
                         </h1>
-                        <p style={{ fontSize: ".9rem", color: "rgba(255,255,255,.55)", lineHeight: 1.7, maxWidth: 300, marginBottom: "2.5rem" }}>
+                        <p style={{ fontSize: ".9rem", color: "rgba(255,255,255,.6)", lineHeight: 1.7, maxWidth: 300, marginBottom: "2.5rem" }}>
                             Create your account and start managing loans, payments, and your credit score — all in one place.
                         </p>
                         <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
@@ -691,12 +688,12 @@ export default function RegisterPage() {
                                     <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(45,122,45,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                         <f.icon style={{ width: 13, height: 13, color: "#9de89d" }} />
                                     </div>
-                                    <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,.65)" }}>{f.label}</span>
+                                    <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,.7)" }}>{f.label}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <p style={{ fontSize: ".72rem", color: "rgba(255,255,255,.28)", position: "relative" }}>© 2026 LoanShark. All rights reserved.</p>
+                    <p style={{ fontSize: ".72rem", color: "rgba(255,255,255,.3)", position: "relative" }}>© 2026 EzLoan. All rights reserved.</p>
                 </div>
 
                 {/* ── RIGHT PANEL ── */}

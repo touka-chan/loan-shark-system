@@ -1,16 +1,17 @@
 // src/pages/LoginPage.jsx
 import { Link, useNavigate } from "react-router-dom";
 import {
-    Landmark, Mail, Lock, Eye, EyeOff,
+    Mail, Lock, Eye, EyeOff,
     ArrowRight, Shield, AlertCircle, CheckCircle,
     TrendingUp, Users, CreditCard
 } from "lucide-react";
 import { useState } from "react";
 import Swal from "sweetalert2";
+import ezLoanLogo from "../assets/logo.jpg";
 
 const C = {
     bg: "#f4f6f5",
-    sidebar: "#1a2e1a",
+    sidebar: "#152515", // Using the exact color you specified
     green: "#2d7a2d",
     greenLight: "#4a9e4a",
     greenSoft: "rgba(45,122,45,.12)",
@@ -170,26 +171,24 @@ export default function LoginPage() {
                 {/* ── LEFT PANEL ── */}
                 <div className="slide-in" style={{
                     width: "36%", minWidth: 300,
-                    background: `linear-gradient(160deg, ${C.sidebar} 0%, #2a4a2a 100%)`,
+                    background: C.sidebar, // Using #152515 as solid color
                     display: "flex", flexDirection: "column", padding: "3rem",
                     position: "relative", overflow: "hidden", flexShrink: 0,
                 }}>
-                    {/* Decorative circles */}
-                    <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, borderRadius: "50%", background: "rgba(45,122,45,.18)", pointerEvents: "none" }} />
-                    <div style={{ position: "absolute", bottom: 80, left: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(45,122,45,.1)", pointerEvents: "none" }} />
-                    <div style={{ position: "absolute", bottom: -30, right: 60, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
+                    {/* Decorative circles - adjusted to work with #152515 */}
+                    <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, borderRadius: "50%", background: "rgba(45,122,45,0.15)", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", bottom: 80, left: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(45,122,45,0.08)", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", bottom: -30, right: 60, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.02)", pointerEvents: "none" }} />
 
                     {/* Logo */}
                     <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-                        <div style={{ width: 38, height: 38, borderRadius: 10, background: C.green, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(45,122,45,.4)" }}>
-                            <Landmark style={{ width: 19, height: 19, color: "#fff" }} />
-                        </div>
-                        <span style={{ fontFamily: "'Lora', serif", fontSize: "1.25rem", fontWeight: 600, color: "#fff" }}>LoanShark</span>
+                        <img src={ezLoanLogo} alt="EzLoan" style={{ height: 38, width: "auto", objectFit: "contain", display: "block" }} />
+                        <span style={{ fontFamily: "'Lora', serif", fontSize: "1.25rem", fontWeight: 600, color: "#fff" }}></span>
                     </div>
 
                     {/* Main copy */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(45,122,45,.25)", border: "1px solid rgba(45,122,45,.4)", borderRadius: 20, padding: "5px 14px", marginBottom: "1.5rem", width: "fit-content" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(45,122,45,0.25)", border: "1px solid rgba(45,122,45,0.4)", borderRadius: 20, padding: "5px 14px", marginBottom: "1.5rem", width: "fit-content" }}>
                             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#9de89d", animation: "pulse 2s infinite" }} />
                             <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#9de89d", letterSpacing: ".08em", textTransform: "uppercase" }}>Secure Portal</span>
                         </div>
@@ -198,7 +197,7 @@ export default function LoginPage() {
                             Smart Lending,<br />
                             <span style={{ color: "#9de89d" }}>Simply Done.</span>
                         </h1>
-                        <p style={{ fontSize: ".9rem", color: "rgba(255,255,255,.55)", lineHeight: 1.7, maxWidth: 300, marginBottom: "2.5rem" }}>
+                        <p style={{ fontSize: ".9rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, maxWidth: 300, marginBottom: "2.5rem" }}>
                             Manage loans, track payments, and monitor borrower portfolios all in one place.
                         </p>
 
@@ -211,18 +210,18 @@ export default function LoginPage() {
                                 { icon: CreditCard, label: "Automated loan tracking" },
                             ].map((f, i) => (
                                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(45,122,45,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(45,122,45,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                         <f.icon style={{ width: 13, height: 13, color: "#9de89d" }} />
                                     </div>
-                                    <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,.65)" }}>{f.label}</span>
+                                    <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,0.7)" }}>{f.label}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <p style={{ fontSize: ".72rem", color: "rgba(255,255,255,.28)", position: "relative" }}>
-                        © 2026 LoanShark. All rights reserved.
+                    <p style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.3)", position: "relative" }}>
+                        © 2026 EzLoan. All rights reserved.
                     </p>
                 </div>
 
@@ -232,7 +231,7 @@ export default function LoginPage() {
                     display: "flex", flexDirection: "column", alignItems: "center",
                 }}>
 
-                    {/* Top bar — matches RegisterPage exactly */}
+                    {/* Top bar */}
                     <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", padding: "1.25rem 2.5rem", flexShrink: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <span style={{ fontSize: ".82rem", color: C.muted }}>No account yet?</span>

@@ -1,15 +1,16 @@
 // src/pages/VerificationPage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Landmark, User, Briefcase, Calendar, DollarSign, CreditCard,
     Shield, Upload, FileText, CheckCircle, AlertCircle, AlertTriangle,
     TrendingUp, Hash, ChevronDown, ChevronRight, X, LayoutDashboard,
-    LogOut, MapPin, Eye
+    LogOut, BadgeCheck, Star, Layers, BookOpen, Wallet
 } from "lucide-react";
 import Swal from "sweetalert2";
+import ezLoanLogo from "../assets/logo.jpg"; // Add this import
 
-// ─── Credit Score Calculator ─────────────────────────────────────────────────
+// ─── Credit Score Calculator ──────────────────────────────────────────────────
 function calculateCreditScore({ monthlyIncome = 0, existingLoans = 0, employmentStatus = "employed", yearsInBusiness = 0, age = 30 }) {
     let score = 600;
     let incomeValue = 0;
@@ -24,31 +25,22 @@ function calculateCreditScore({ monthlyIncome = 0, existingLoans = 0, employment
     else if (monthlyIncome === "80k_90k") incomeValue = 85000;
     else if (monthlyIncome === "90k_100k") incomeValue = 95000;
     else if (monthlyIncome === "above_100k") incomeValue = 120000;
-
     if (incomeValue >= 100000) score += 100;
     else if (incomeValue >= 50000) score += 70;
     else if (incomeValue >= 25000) score += 40;
     else if (incomeValue >= 15000) score += 20;
     else if (incomeValue < 10000) score -= 30;
-
     if (existingLoans === 0) score += 40;
     else if (existingLoans === 1) score += 20;
     else if (existingLoans === 2) score -= 10;
     else if (existingLoans >= 3) score -= 30;
-
     if (employmentStatus === "employed") score += 50;
-    else if (employmentStatus === "self-employed") {
-        score += 30;
-        if (yearsInBusiness >= 5) score += 20;
-        else if (yearsInBusiness >= 2) score += 10;
-    }
+    else if (employmentStatus === "self-employed") { score += 30; if (yearsInBusiness >= 5) score += 20; else if (yearsInBusiness >= 2) score += 10; }
     else if (employmentStatus === "retired") score += 20;
     else if (employmentStatus === "unemployed") score -= 50;
-
     if (age >= 30 && age <= 55) score += 20;
     else if (age < 25) score -= 10;
     else if (age > 65) score -= 20;
-
     return Math.min(850, Math.max(500, Math.round(score)));
 }
 
@@ -79,17 +71,24 @@ function validateID(type, number) {
 }
 
 const C = {
-    bg: "#f4f6f5", sidebar: "#1a2e1a", green: "#2d7a2d", greenLight: "#4a9e4a",
-    greenSoft: "rgba(45,122,45,.12)", greenBorder: "rgba(45,122,45,.25)",
-    white: "#ffffff", border: "#e8ede8", text: "#1a2e1a", muted: "#7a9a7a",
-    label: "#3a5a3a", warning: "#c47a00", danger: "#c42d2d", card: "#ffffff",
+    bg: "#f4f6f5",
+    sidebar: "#152515",  // Changed from "#1a2e1a" to "#152515" to match HomePage
+    green: "#2d7a2d",
+    greenLight: "#4a9e4a",
+    greenSoft: "rgba(45,122,45,.12)",
+    greenBorder: "rgba(45,122,45,.25)",
+    white: "#ffffff",
+    border: "#e8ede8",
+    text: "#1a2e1a",
+    muted: "#7a9a7a",
+    label: "#3a5a3a",
+    warning: "#c47a00",
+    danger: "#c42d2d",
+    card: "#ffffff",
+    primaryLight: "#e8f2e8",
 };
 
-const inputBase = {
-    width: "100%", padding: "10px 12px 10px 38px", border: `1.5px solid ${C.border}`,
-    borderRadius: 10, fontSize: ".875rem", color: C.text, fontFamily: "'Outfit', sans-serif",
-    background: C.white, outline: "none", transition: "border-color .15s, box-shadow .15s",
-};
+const inputBase = { width: "100%", padding: "10px 12px 10px 38px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: ".875rem", color: C.text, fontFamily: "'Outfit', sans-serif", background: C.white, outline: "none", transition: "border-color .15s, box-shadow .15s" };
 
 function Field({ label, required, icon: Icon, children, error, hint }) {
     return (
@@ -102,23 +101,16 @@ function Field({ label, required, icon: Icon, children, error, hint }) {
                 {Icon && <Icon style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: error ? C.danger : C.muted, zIndex: 1, pointerEvents: "none" }} />}
                 {children}
             </div>
-            {error && (
-                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
-                    <AlertCircle style={{ width: 12, height: 12, color: C.danger, flexShrink: 0 }} />
-                    <span style={{ fontSize: ".72rem", color: C.danger }}>{error}</span>
-                </div>
-            )}
+            {error && <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}><AlertCircle style={{ width: 12, height: 12, color: C.danger, flexShrink: 0 }} /><span style={{ fontSize: ".72rem", color: C.danger }}>{error}</span></div>}
         </div>
     );
 }
 
 function TInput({ name, value, onChange, placeholder, type = "text", error }) {
     const [focused, setFocused] = useState(false);
-    return (
-        <input type={type} name={name} value={value || ""} onChange={onChange} placeholder={placeholder}
-            style={{ ...inputBase, borderColor: error ? C.danger : focused ? C.green : C.border, boxShadow: error ? `0 0 0 3px rgba(196,45,45,.08)` : focused ? `0 0 0 3px ${C.greenSoft}` : "none" }}
-            onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} />
-    );
+    return <input type={type} name={name} value={value || ""} onChange={onChange} placeholder={placeholder}
+        style={{ ...inputBase, borderColor: error ? C.danger : focused ? C.green : C.border, boxShadow: error ? `0 0 0 3px rgba(196,45,45,.08)` : focused ? `0 0 0 3px ${C.greenSoft}` : "none" }}
+        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} />;
 }
 
 function SInput({ name, value, onChange, error, children }) {
@@ -159,19 +151,13 @@ function CreditScoreCard({ score, compact = false }) {
                         {!compact && <p style={{ fontSize: ".75rem", fontWeight: 600, color: risk.color }}>{risk.level}</p>}
                     </div>
                 </div>
-                <span style={{ fontSize: ".7rem", fontWeight: 700, color: risk.color, background: `${risk.color}15`, border: `1px solid ${risk.border}`, borderRadius: 20, padding: "4px 12px" }}>
-                    {risk.level}
-                </span>
+                <span style={{ fontSize: ".7rem", fontWeight: 700, color: risk.color, background: `${risk.color}15`, border: `1px solid ${risk.border}`, borderRadius: 20, padding: "4px 12px" }}>{risk.level}</span>
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: ".75rem" }}>
                 <span style={{ fontFamily: "'Lora', serif", fontSize: compact ? "2rem" : "3rem", fontWeight: 600, color: risk.color, lineHeight: 1 }}>{score}</span>
                 <span style={{ fontSize: ".9rem", color: C.muted, fontWeight: 500 }}>/850</span>
             </div>
-            {!compact && (
-                <p style={{ fontSize: ".8rem", color: risk.color, fontWeight: 500, marginBottom: "1rem", lineHeight: 1.5 }}>
-                    {risk.icon} {risk.recommendation}
-                </p>
-            )}
+            {!compact && <p style={{ fontSize: ".8rem", color: risk.color, fontWeight: 500, marginBottom: "1rem", lineHeight: 1.5 }}>{risk.icon} {risk.recommendation}</p>}
             <div style={{ height: 7, borderRadius: 99, background: `${risk.color}18`, overflow: "hidden", marginBottom: compact ? 0 : ".5rem" }}>
                 <div style={{ height: "100%", borderRadius: 99, background: risk.bar, width: `${pct}%`, transition: "width 1.2s cubic-bezier(.16,1,.3,1)" }} />
             </div>
@@ -185,13 +171,92 @@ function CreditScoreCard({ score, compact = false }) {
     );
 }
 
+// ─── Already Verified State ───────────────────────────────────────────────────
+function VerifiedState({ profile, creditScore, navigate }) {
+    const risk = getRiskLevel(creditScore || 600);
+    const pct = Math.min(100, Math.max(0, ((creditScore - 500) / 350) * 100));
+    const verifiedDate = profile.verifiedAt ? new Date(profile.verifiedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—";
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {/* Verified hero card */}
+            <div style={{ background: `linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)`, borderRadius: 16, border: "1.5px solid #c8e8c8", padding: "2.5rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(45,122,45,.08)", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", bottom: -10, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(45,122,45,.05)", pointerEvents: "none" }} />
+                <div style={{ position: "relative" }}>
+                    <div style={{ width: 80, height: 80, borderRadius: "50%", background: C.green, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", boxShadow: "0 12px 40px rgba(45,122,45,.3)" }}>
+                        <BadgeCheck style={{ width: 40, height: 40, color: "#fff" }} />
+                    </div>
+                    <h2 style={{ fontFamily: "'Lora', serif", fontSize: "1.75rem", fontWeight: 600, color: C.text, marginBottom: ".5rem" }}>You're Verified! 🎉</h2>
+                    <p style={{ fontSize: ".9rem", color: C.muted, marginBottom: "1.5rem", lineHeight: 1.6 }}>
+                        Your identity has been successfully verified on <strong style={{ color: C.text }}>{verifiedDate}</strong>.<br />
+                        You now have full access to all loan products and services.
+                    </p>
+
+                    {/* Badges row */}
+                    <div style={{ display: "flex", gap: ".75rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+                        {[
+                            { icon: Shield, label: "Identity Verified", color: C.green, bg: "#e8f5e8", border: "#c8e8c8" },
+                            { icon: Star, label: risk.level, color: risk.color, bg: risk.bg, border: risk.border },
+                            { icon: CreditCard, label: "Loan Eligible", color: "#2563eb", bg: "#e8f0fe", border: "#c8d8f8" },
+                        ].map((b, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: 20, background: b.bg, border: `1.5px solid ${b.border}` }}>
+                                <b.icon style={{ width: 14, height: 14, color: b.color }} />
+                                <span style={{ fontSize: ".8rem", fontWeight: 600, color: b.color }}>{b.label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{ display: "flex", gap: ".75rem", justifyContent: "center" }}>
+                        <button onClick={() => navigate("/home")} style={{ padding: "12px 28px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontFamily: "'Outfit',sans-serif", fontWeight: 600, fontSize: ".9rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "background .18s" }}
+                            onMouseEnter={e => e.currentTarget.style.background = C.greenLight}
+                            onMouseLeave={e => e.currentTarget.style.background = C.green}>
+                            <LayoutDashboard style={{ width: 15, height: 15 }} /> Go to Dashboard
+                        </button>
+                        <button onClick={() => navigate("/profile")} style={{ padding: "12px 24px", borderRadius: 10, background: C.white, color: C.text, border: `1.5px solid ${C.border}`, fontFamily: "'Outfit',sans-serif", fontWeight: 500, fontSize: ".9rem", cursor: "pointer", transition: "all .18s" }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = C.green; e.currentTarget.style.color = C.green; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.text; }}>
+                            View Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Credit score display */}
+            <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+                <h3 style={{ fontFamily: "'Lora', serif", fontSize: "1rem", fontWeight: 600, color: C.text, marginBottom: "1.25rem" }}>Your Credit Score</h3>
+                <CreditScoreCard score={creditScore || 600} />
+            </div>
+
+            {/* Verified info details */}
+            <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+                <h3 style={{ fontFamily: "'Lora', serif", fontSize: "1rem", fontWeight: 600, color: C.text, marginBottom: "1.25rem" }}>Verification Details</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    {[
+                        ["Verification Status", "Approved ✓"],
+                        ["Verified Date", verifiedDate],
+                        ["ID Type", profile.idType ? profile.idType.replace("_", " ") : "—"],
+                        ["ID Number", profile.idNumber || "—"],
+                        ["Credit Score", `${creditScore || "—"} / 850`],
+                        ["Risk Level", risk.level],
+                    ].map(([k, v]) => (
+                        <div key={k} style={{ padding: "1rem", background: C.bg, borderRadius: 10, border: `1px solid ${C.border}` }}>
+                            <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".07em", marginBottom: ".35rem" }}>{k}</p>
+                            <p style={{ fontSize: ".9rem", fontWeight: 600, color: k === "Verification Status" ? C.green : k === "Risk Level" ? risk.color : C.text }}>{v}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const STEPS = [
     { n: 1, label: "Financial Info", icon: DollarSign },
     { n: 2, label: "ID Verification", icon: CreditCard },
     { n: 3, label: "Submit", icon: CheckCircle },
 ];
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function VerificationPage() {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
@@ -200,6 +265,9 @@ export default function VerificationPage() {
     const [computedScore, setComputedScore] = useState(600);
     const [idVal, setIdVal] = useState({ valid: false, msg: "" });
     const [visible, setVisible] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const hoverRef = useRef(null);
 
     const [form, setForm] = useState({
         employmentStatus: "", occupation: "", monthlyIncome: "",
@@ -210,17 +278,17 @@ export default function VerificationPage() {
     useEffect(() => {
         const data = JSON.parse(localStorage.getItem("registrationData") || "{}");
         setProfile(data);
-        if (data.isVerified) navigate("/profile");
+        // ✅ Always accessible — check verified status but do NOT redirect
+        const verified = data.isVerified === true || data.isVerified === "true" || localStorage.getItem("isVerified") === "true";
+        setIsVerified(verified);
         const t = setTimeout(() => setVisible(true), 60);
         return () => clearTimeout(t);
     }, [navigate]);
 
     useEffect(() => {
         const score = calculateCreditScore({
-            monthlyIncome: form.monthlyIncome || "",
-            existingLoans: Number(form.existingLoans) || 0,
-            employmentStatus: form.employmentStatus,
-            yearsInBusiness: Number(form.yearsInBusiness) || 0,
+            monthlyIncome: form.monthlyIncome || "", existingLoans: Number(form.existingLoans) || 0,
+            employmentStatus: form.employmentStatus, yearsInBusiness: Number(form.yearsInBusiness) || 0,
             age: Number(profile.age) || 30,
         });
         setComputedScore(score);
@@ -228,11 +296,10 @@ export default function VerificationPage() {
 
     useEffect(() => { setIdVal(validateID(form.idType, form.idNumber)); }, [form.idType, form.idNumber]);
 
-    const anim = (d = 0) => ({
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(18px)",
-        transition: `opacity .45s ease ${d}ms, transform .45s cubic-bezier(.16,1,.3,1) ${d}ms`
-    });
+    const openDropdown = () => { clearTimeout(hoverRef.current); setProfileOpen(true); };
+    const closeDropdown = () => { hoverRef.current = setTimeout(() => setProfileOpen(false), 150); };
+
+    const anim = (d = 0) => ({ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(18px)", transition: `opacity .45s ease ${d}ms, transform .45s cubic-bezier(.16,1,.3,1) ${d}ms` });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -270,144 +337,48 @@ export default function VerificationPage() {
     };
 
     const next = () => {
-        if (step === 1) {
-            if (!validateStep1()) { Swal.fire({ title: "Missing Information", text: "Please fill in all required fields.", icon: "warning", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } }); return; }
-            setStep(2);
-        } else if (step === 2) {
-            if (!validateStep2()) { Swal.fire({ title: "ID Incomplete", text: "Please complete all ID requirements.", icon: "warning", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } }); return; }
-            setStep(3);
-        }
+        if (step === 1) { if (!validateStep1()) { Swal.fire({ title: "Missing Information", text: "Please fill in all required fields.", icon: "warning", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } }); return; } setStep(2); }
+        else if (step === 2) { if (!validateStep2()) { Swal.fire({ title: "ID Incomplete", text: "Please complete all ID requirements.", icon: "warning", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } }); return; } setStep(3); }
     };
 
     const goBack = () => { if (step > 1) { setStep(step - 1); setErrors({}); } };
 
-    // ── FIXED handleSubmit: API-first, no silent catch ────────────────────────
     const handleSubmit = async () => {
         const risk = getRiskLevel(computedScore);
-
-        if (!validateStep1() || !validateStep2()) {
-            Swal.fire({ title: "Validation Error", text: "Please complete all required fields correctly.", icon: "error", confirmButtonColor: C.green });
-            return;
-        }
-
+        if (!validateStep1() || !validateStep2()) { Swal.fire({ title: "Validation Error", text: "Please complete all required fields correctly.", icon: "error", confirmButtonColor: C.green }); return; }
         if (computedScore < 650) {
-            await Swal.fire({
-                title: "Verification Unsuccessful",
-                html: `<div style="text-align:center;padding:.5rem 0"><p style="font-size:.95rem;color:#374151;margin-bottom:.75rem">Your credit score is <strong style="color:#c42d2d">${computedScore}</strong> — classified as <strong style="color:#c42d2d">High Risk</strong>.</p><div style="background:#fdf0f0;border:1px solid #f8c8c8;border-radius:10px;padding:1rem;text-align:left"><p style="font-size:.8rem;color:#7a1a1a;line-height:1.7">❌ You are not eligible for loans at this time.<br/>You may reapply after <strong>3 months</strong> or improve your financial standing.</p></div></div>`,
-                icon: "error", confirmButtonText: "Return to Profile", confirmButtonColor: C.green,
-                customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" }
-            });
-            navigate("/profile");
-            return;
+            await Swal.fire({ title: "Verification Unsuccessful", html: `<div style="text-align:center;padding:.5rem 0"><p style="font-size:.95rem;color:#374151;margin-bottom:.75rem">Your credit score is <strong style="color:#c42d2d">${computedScore}</strong> — classified as <strong style="color:#c42d2d">High Risk</strong>.</p><div style="background:#fdf0f0;border:1px solid #f8c8c8;border-radius:10px;padding:1rem;text-align:left"><p style="font-size:.8rem;color:#7a1a1a;line-height:1.7">❌ You are not eligible for loans at this time.<br/>You may reapply after <strong>3 months</strong> or improve your financial standing.</p></div></div>`, icon: "error", confirmButtonText: "Return to Profile", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } });
+            navigate("/profile"); return;
         }
-
-        const confirm = await Swal.fire({
-            title: "Submit Verification?",
-            html: `<p style="font-size:.9rem;color:#6b7280">Your credit score: <strong style="color:${risk.color}">${computedScore} — ${risk.level}</strong></p>`,
-            icon: "question", showCancelButton: true,
-            confirmButtonText: "Yes, submit", cancelButtonText: "Cancel",
-            confirmButtonColor: C.green, reverseButtons: true,
-            customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm", cancelButton: "swal-cancel" }
-        });
+        const confirm = await Swal.fire({ title: "Submit Verification?", html: `<p style="font-size:.9rem;color:#6b7280">Your credit score: <strong style="color:${risk.color}">${computedScore} — ${risk.level}</strong></p>`, icon: "question", showCancelButton: true, confirmButtonText: "Yes, submit", cancelButtonText: "Cancel", confirmButtonColor: C.green, reverseButtons: true, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm", cancelButton: "swal-cancel" } });
         if (!confirm.isConfirmed) return;
-
-        // Show loading
-        Swal.fire({
-            title: "Submitting…",
-            html: `<p style="font-size:.9rem;color:#6b7280">Saving your verification to the server…</p>`,
-            allowOutsideClick: false, showConfirmButton: false,
-            didOpen: () => Swal.showLoading(),
-            customClass: { popup: "swal-popup", title: "swal-title" }
-        });
-
+        Swal.fire({ title: "Submitting…", html: `<p style="font-size:.9rem;color:#6b7280">Saving your verification to the server…</p>`, allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading(), customClass: { popup: "swal-popup", title: "swal-title" } });
         try {
-            // ✅ Step 1: Call API — do NOT touch localStorage yet
             const response = await fetch("http://localhost:5000/api/auth/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId: profile.id,
-                    employmentStatus: form.employmentStatus,
-                    occupation: form.occupation,
-                    monthlyIncome: form.monthlyIncome,   // range string e.g. "20k_30k"
-                    existingLoans: form.existingLoans,
-                    yearsInBusiness: form.yearsInBusiness,
-                    idType: form.idType,
-                    idNumber: form.idNumber,
-                    creditScore: computedScore,
-                    riskLevel: risk.level
-                }),
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: profile.id, employmentStatus: form.employmentStatus, occupation: form.occupation, monthlyIncome: form.monthlyIncome, existingLoans: form.existingLoans, yearsInBusiness: form.yearsInBusiness, idType: form.idType, idNumber: form.idNumber, creditScore: computedScore, riskLevel: risk.level }),
             });
-
             const data = await response.json();
-
-            // ✅ Step 2: If API failed, show real error and STOP — don't update localStorage
-            if (!response.ok) {
-                await Swal.fire({
-                    title: "Verification Failed",
-                    html: `<p style="font-size:.9rem;color:#6b7280">${data.message || "Something went wrong. Please try again."}</p>
-                           ${data.debug ? `<p style="font-size:.75rem;color:#c42d2d;margin-top:.5rem;font-family:monospace">${data.debug}</p>` : ""}`,
-                    icon: "error", confirmButtonText: "Try Again", confirmButtonColor: C.green,
-                    customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" }
-                });
-                return;
-            }
-
-            // ✅ Step 3: API succeeded — update localStorage from DB response (source of truth)
+            if (!response.ok) { await Swal.fire({ title: "Verification Failed", html: `<p style="font-size:.9rem;color:#6b7280">${data.message || "Something went wrong. Please try again."}</p>${data.debug ? `<p style="font-size:.75rem;color:#c42d2d;margin-top:.5rem;font-family:monospace">${data.debug}</p>` : ""}`, icon: "error", confirmButtonText: "Try Again", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } }); return; }
             const updatedUser = data.user;
-            const updated = {
-                ...profile,
-                ...updatedUser,
-                isVerified: Boolean(updatedUser.isVerified),
-                verifiedAt: updatedUser.verifiedAt || new Date().toISOString(),
-                creditScore: data.creditScore,
-                riskLevel: data.riskLevel,
-                idType: form.idType,
-                idNumber: `****${form.idNumber.slice(-4)}`,
-            };
+            const updated = { ...profile, ...updatedUser, isVerified: Boolean(updatedUser.isVerified), verifiedAt: updatedUser.verifiedAt || new Date().toISOString(), creditScore: data.creditScore, riskLevel: data.riskLevel, idType: form.idType, idNumber: `****${form.idNumber.slice(-4)}` };
             localStorage.setItem("registrationData", JSON.stringify(updated));
             localStorage.setItem("isVerified", String(Boolean(updatedUser.isVerified)));
             localStorage.setItem("creditScore", String(data.creditScore));
-
-            // ✅ Step 4: Show success
-            await Swal.fire({
-                title: "Verification Complete!",
-                html: `<div style="text-align:center;padding:.5rem 0">
-                         <p style="font-size:1rem;color:#374151;margin-bottom:.5rem">Credit Score: <strong style="color:${risk.color};font-size:1.2rem">${data.creditScore}</strong></p>
-                         <p style="font-size:.85rem;font-weight:600;color:${risk.color};margin-bottom:.75rem">${data.riskLevel}</p>
-                         <p style="font-size:.82rem;color:#6b7280;line-height:1.6">${risk.recommendation}</p>
-                       </div>`,
-                icon: "success", confirmButtonText: "Go to My Profile", confirmButtonColor: C.green,
-                allowOutsideClick: false,
-                customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" }
-            });
+            await Swal.fire({ title: "Verification Complete!", html: `<div style="text-align:center;padding:.5rem 0"><p style="font-size:1rem;color:#374151;margin-bottom:.5rem">Credit Score: <strong style="color:${risk.color};font-size:1.2rem">${data.creditScore}</strong></p><p style="font-size:.85rem;font-weight:600;color:${risk.color};margin-bottom:.75rem">${data.riskLevel}</p><p style="font-size:.82rem;color:#6b7280;line-height:1.6">${risk.recommendation}</p></div>`, icon: "success", confirmButtonText: "Go to My Profile", confirmButtonColor: C.green, allowOutsideClick: false, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } });
             navigate("/profile");
-
         } catch (err) {
-            // ✅ Network/server unreachable — show real error
-            await Swal.fire({
-                title: "Cannot Connect to Server",
-                html: `<p style="font-size:.9rem;color:#6b7280">Make sure the backend is running and try again.</p>
-                       <p style="font-size:.75rem;color:#c42d2d;margin-top:.5rem;font-family:monospace">${err.message}</p>`,
-                icon: "error", confirmButtonText: "OK", confirmButtonColor: C.green,
-                customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" }
-            });
+            await Swal.fire({ title: "Cannot Connect to Server", html: `<p style="font-size:.9rem;color:#6b7280">Make sure the backend is running and try again.</p><p style="font-size:.75rem;color:#c42d2d;margin-top:.5rem;font-family:monospace">${err.message}</p>`, icon: "error", confirmButtonText: "OK", confirmButtonColor: C.green, customClass: { popup: "swal-popup", title: "swal-title", confirmButton: "swal-confirm" } });
         }
     };
 
     const risk = getRiskLevel(computedScore);
     const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "User";
     const initials = [(profile.firstName || "")[0], (profile.lastName || "")[0]].filter(Boolean).join("").toUpperCase() || "U";
+    const creditScore = profile.creditScore || parseInt(localStorage.getItem("creditScore") || "600");
 
     const getIncomeDisplayText = (value) => {
-        const ranges = {
-            "below_10k": "Below ₱10,000", "10k_20k": "₱10,000 - ₱20,000",
-            "20k_30k": "₱20,000 - ₱30,000", "30k_40k": "₱30,000 - ₱40,000",
-            "40k_50k": "₱40,000 - ₱50,000", "50k_60k": "₱50,000 - ₱60,000",
-            "60k_70k": "₱60,000 - ₱70,000", "70k_80k": "₱70,000 - ₱80,000",
-            "80k_90k": "₱80,000 - ₱90,000", "90k_100k": "₱90,000 - ₱100,000",
-            "above_100k": "Above ₱100,000"
-        };
+        const ranges = { "below_10k": "Below ₱10,000", "10k_20k": "₱10,000 - ₱20,000", "20k_30k": "₱20,000 - ₱30,000", "30k_40k": "₱30,000 - ₱40,000", "40k_50k": "₱40,000 - ₱50,000", "50k_60k": "₱50,000 - ₱60,000", "60k_70k": "₱60,000 - ₱70,000", "70k_80k": "₱70,000 - ₱80,000", "80k_90k": "₱80,000 - ₱90,000", "90k_100k": "₱90,000 - ₱100,000", "above_100k": "Above ₱100,000" };
         return ranges[value] || value;
     };
 
@@ -419,6 +390,7 @@ export default function VerificationPage() {
                 body { font-family: 'Outfit', sans-serif; background: ${C.bg}; color: ${C.text}; }
                 ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #c8d8c8; border-radius: 99px; }
                 @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes dropIn { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
                 .swal-popup  { border-radius: 16px !important; font-family: 'Outfit', sans-serif !important; padding: 2rem !important; }
                 .swal-title  { font-family: 'Lora', serif !important; font-size: 1.3rem !important; color: ${C.text} !important; }
                 .swal-confirm{ font-family: 'Outfit', sans-serif !important; font-weight: 600 !important; border-radius: 8px !important; padding: 10px 22px !important; }
@@ -430,27 +402,24 @@ export default function VerificationPage() {
 
                 {/* ── SIDEBAR ── */}
                 <aside style={{ width: 220, minWidth: 220, background: C.sidebar, display: "flex", flexDirection: "column", zIndex: 30 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid rgba(255,255,255,.08)", minHeight: 64 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 9, background: C.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <Landmark style={{ width: 17, height: 17, color: "#fff" }} />
-                        </div>
-                        <span style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", fontWeight: 600, color: "#fff" }}>LoanShark</span>
+                    {/* Logo - Updated to match UserProfilePage */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 72, padding: "0 1rem", borderBottom: "1px solid rgba(255,255,255,.08)", flexShrink: 0, overflow: "hidden" }}>
+                        <img src={ezLoanLogo} alt="EzLoan" style={{ height: 44, width: "auto", objectFit: "contain", display: "block" }} />
                     </div>
                     <nav style={{ flex: 1, padding: ".75rem .6rem", display: "flex", flexDirection: "column", gap: 2 }}>
-                        <button onClick={() => navigate("/home")} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", color: "rgba(255,255,255,.5)", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", width: "100%", transition: "all .18s" }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.07)"; e.currentTarget.style.color = "rgba(255,255,255,.85)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,.5)"; }}>
-                            <LayoutDashboard style={{ width: 16, height: 16 }} />Dashboard
-                        </button>
-                        <button onClick={() => navigate("/profile")} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer", background: "transparent", color: "rgba(255,255,255,.5)", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", width: "100%", transition: "all .18s" }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,.07)"; e.currentTarget.style.color = "rgba(255,255,255,.85)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,.5)"; }}>
-                            <User style={{ width: 16, height: 16 }} />My Profile
-                        </button>
-                        <button style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer", background: "rgba(45,122,45,.35)", color: "#9de89d", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", fontWeight: 600, width: "100%", position: "relative" }}>
-                            <span style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: 3, height: 20, borderRadius: "0 3px 3px 0", background: "#9de89d" }} />
-                            <Shield style={{ width: 16, height: 16 }} />Verification
-                        </button>
+                        {[
+                            { icon: LayoutDashboard, label: "Dashboard", path: "/home" },
+                            { icon: Layers, label: "Loan Types", path: null },
+                            { icon: BookOpen, label: "Loan Plans", path: null },
+                            { icon: Wallet, label: "Payment", path: null },
+                        ].map(({ icon: Icon, label, path }) => (
+                            <button key={label} onClick={() => path && navigate(path)}
+                                style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, border: "none", cursor: path ? "pointer" : "default", background: "transparent", color: "rgba(255,255,255,.5)", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", fontWeight: 400, transition: "all .18s", width: "100%" }}
+                                onMouseEnter={e => { if (path) { e.currentTarget.style.background = "rgba(255,255,255,.07)"; e.currentTarget.style.color = "rgba(255,255,255,.85)"; } }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,.5)"; }}>
+                                <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />{label}
+                            </button>
+                        ))}
                     </nav>
                     <div style={{ padding: ".75rem .6rem 1rem", borderTop: "1px solid rgba(255,255,255,.08)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 9, background: "rgba(255,255,255,.06)" }}>
@@ -469,315 +438,334 @@ export default function VerificationPage() {
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                     <header style={{ height: 64, background: C.white, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.75rem", flexShrink: 0, zIndex: 20 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: ".78rem", color: C.muted }}>LoanShark</span>
+                            <span style={{ fontSize: ".78rem", color: C.muted }}>EzLoan</span>
                             <ChevronRight style={{ width: 13, height: 13, color: "#c8d8c8" }} />
                             <span style={{ fontSize: ".78rem", color: C.muted, cursor: "pointer" }} onClick={() => navigate("/profile")}>My Profile</span>
                             <ChevronRight style={{ width: 13, height: 13, color: "#c8d8c8" }} />
                             <span style={{ fontSize: ".78rem", fontWeight: 600, color: C.text }}>Identity Verification</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 12px 5px 5px", borderRadius: 9, border: `1.5px solid ${C.border}`, background: C.white }}>
-                            <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.green, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#fff" }}>{initials}</span>
+
+                        {/* ── Profile pill with hover dropdown ── */}
+                        <div style={{ position: "relative" }} onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 12px 5px 5px", borderRadius: 9, border: `1.5px solid ${profileOpen ? C.green : C.border}`, background: C.white, cursor: "default", transition: "border-color .15s", boxShadow: profileOpen ? `0 0 0 3px ${C.greenSoft}` : "none" }}>
+                                <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#fff" }}>{initials}</span>
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: ".76rem", fontWeight: 600, color: C.text, lineHeight: 1 }}>{fullName}</p>
+                                    <p style={{ fontSize: ".63rem", color: C.muted, marginTop: 2 }}>{profile.role || "—"}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p style={{ fontSize: ".76rem", fontWeight: 600, color: C.text, lineHeight: 1 }}>{fullName}</p>
-                                <p style={{ fontSize: ".63rem", color: C.muted, marginTop: 2 }}>{profile.role || "—"}</p>
-                            </div>
+
+                            {/* Hover Dropdown */}
+                            {profileOpen && (
+                                <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, width: 215, background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, boxShadow: "0 16px 48px rgba(0,0,0,.12)", zIndex: 99, overflow: "hidden", animation: "dropIn .18s ease" }}
+                                    onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+                                    {/* User header */}
+                                    <div style={{ padding: "13px 15px", background: C.sidebar }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                            <div style={{ width: 34, height: 34, borderRadius: "50%", background: C.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                                <span style={{ fontSize: ".72rem", fontWeight: 700, color: "#fff" }}>{initials}</span>
+                                            </div>
+                                            <div style={{ overflow: "hidden" }}>
+                                                <p style={{ fontSize: ".8rem", fontWeight: 600, color: "#fff", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fullName}</p>
+                                                <p style={{ fontSize: ".63rem", color: "rgba(255,255,255,.45)", marginTop: 2 }}>{profile.role || "User"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: ".4rem" }}>
+                                        <button onClick={() => { setProfileOpen(false); navigate("/profile"); }}
+                                            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: "transparent", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", color: C.text, transition: "all .15s", textAlign: "left" }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = C.primaryLight; e.currentTarget.style.color = C.green; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = C.text; }}>
+                                            <User style={{ width: 14, height: 14, color: C.green, flexShrink: 0 }} />My Profile
+                                        </button>
+                                        {/* Verification — highlighted as current page */}
+                                        <button style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, border: "none", cursor: "default", background: C.primaryLight, fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", color: C.green, fontWeight: 600, textAlign: "left" }}>
+                                            <Shield style={{ width: 14, height: 14, color: C.green, flexShrink: 0 }} />Verification
+                                            <CheckCircle style={{ width: 12, height: 12, color: C.green, marginLeft: "auto" }} />
+                                        </button>
+                                    </div>
+                                    <div style={{ height: 1, background: C.border }} />
+                                    <div style={{ padding: ".4rem" }}>
+                                        <button onClick={() => { setProfileOpen(false); navigate("/login"); }}
+                                            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, border: "none", cursor: "pointer", background: "transparent", fontFamily: "'Outfit',sans-serif", fontSize: ".83rem", color: C.danger, transition: "all .15s", textAlign: "left" }}
+                                            onMouseEnter={e => e.currentTarget.style.background = "#fde8e8"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                            <LogOut style={{ width: 14, height: 14, flexShrink: 0 }} />Sign Out
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </header>
 
                     <main style={{ flex: 1, overflowY: "auto", padding: "1.75rem" }}>
-                        {/* Hero Banner */}
-                        <div style={{ ...anim(0), background: `linear-gradient(135deg, ${C.sidebar} 0%, #2d4a2d 100%)`, borderRadius: 16, padding: "1.75rem 2rem", marginBottom: "1.5rem", position: "relative", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", top: -30, right: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(45,122,45,.2)", pointerEvents: "none" }} />
-                            <div style={{ position: "absolute", bottom: -10, right: 100, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,.04)", pointerEvents: "none" }} />
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
-                                <div>
-                                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(196,122,0,.25)", border: "1px solid rgba(196,122,0,.4)", borderRadius: 20, padding: "4px 12px", marginBottom: ".75rem" }}>
-                                        <AlertTriangle style={{ width: 12, height: 12, color: "#f0c040" }} />
-                                        <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#f0c040", letterSpacing: ".05em", textTransform: "uppercase" }}>Unverified Account</span>
-                                    </div>
-                                    <h1 style={{ fontFamily: "'Lora', serif", fontSize: "1.55rem", fontWeight: 600, color: "#fff", lineHeight: 1.25 }}>Identity Verification</h1>
-                                    <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)", marginTop: ".4rem", maxWidth: 440, lineHeight: 1.6 }}>
-                                        Complete this process to receive your <strong style={{ color: "#9de89d" }}>credit score</strong> and unlock full loan eligibility. Takes 3–5 minutes.
-                                    </p>
-                                </div>
-                                <div style={{ flexShrink: 0, textAlign: "center" }}>
-                                    <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(45,122,45,.3)", border: "2px solid rgba(45,122,45,.5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto .5rem" }}>
-                                        <Shield style={{ width: 28, height: 28, color: "#9de89d" }} />
-                                    </div>
-                                    <p style={{ fontSize: ".68rem", color: "rgba(255,255,255,.4)", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase" }}>Step {step} of 3</p>
-                                </div>
+
+                        {/* ── ALREADY VERIFIED STATE ── */}
+                        {isVerified ? (
+                            <div style={anim(0)}>
+                                <VerifiedState profile={profile} creditScore={creditScore} navigate={navigate} />
                             </div>
-                        </div>
-
-                        {/* Step Progress */}
-                        <div style={{ ...anim(60), background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem 1.5rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: 0 }}>
-                            {STEPS.map((s, i) => {
-                                const done = step > s.n, active = step === s.n;
-                                return (
-                                    <div key={s.n} style={{ flex: 1, display: "flex", alignItems: "center" }}>
-                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: "50%", background: done ? C.green : active ? C.sidebar : C.bg, border: `2px solid ${done || active ? C.green : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all .3s" }}>
-                                                {done ? <CheckCircle style={{ width: 16, height: 16, color: "#fff" }} /> : <s.icon style={{ width: 15, height: 15, color: active ? "#9de89d" : C.muted }} />}
+                        ) : (
+                            <>
+                                {/* Hero Banner */}
+                                <div style={{ ...anim(0), background: `linear-gradient(135deg, ${C.sidebar} 0%, #2d4a2d 100%)`, borderRadius: 16, padding: "1.75rem 2rem", marginBottom: "1.5rem", position: "relative", overflow: "hidden" }}>
+                                    <div style={{ position: "absolute", top: -30, right: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(45,122,45,.2)", pointerEvents: "none" }} />
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+                                        <div>
+                                            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(196,122,0,.25)", border: "1px solid rgba(196,122,0,.4)", borderRadius: 20, padding: "4px 12px", marginBottom: ".75rem" }}>
+                                                <AlertTriangle style={{ width: 12, height: 12, color: "#f0c040" }} />
+                                                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#f0c040", letterSpacing: ".05em", textTransform: "uppercase" }}>Unverified Account</span>
                                             </div>
-                                            <span style={{ fontSize: ".68rem", fontWeight: 700, color: done || active ? C.green : C.muted, letterSpacing: ".04em", whiteSpace: "nowrap" }}>{s.label}</span>
+                                            <h1 style={{ fontFamily: "'Lora', serif", fontSize: "1.55rem", fontWeight: 600, color: "#fff", lineHeight: 1.25 }}>Identity Verification</h1>
+                                            <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)", marginTop: ".4rem", maxWidth: 440, lineHeight: 1.6 }}>
+                                                Complete this process to receive your <strong style={{ color: "#9de89d" }}>credit score</strong> and unlock full loan eligibility. Takes 3–5 minutes.
+                                            </p>
                                         </div>
-                                        {i < STEPS.length - 1 && <div style={{ flex: 1, height: 2, background: step > s.n ? C.green : C.border, transition: "background .3s", margin: "0 8px", marginBottom: 22 }} />}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Two-column layout */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.25rem", alignItems: "start" }}>
-                            <div style={anim(100)}>
-
-                                {/* Step 1 */}
-                                {step === 1 && (
-                                    <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                <Briefcase style={{ width: 16, height: 16, color: C.green }} />
+                                        <div style={{ flexShrink: 0, textAlign: "center" }}>
+                                            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(45,122,45,.3)", border: "2px solid rgba(45,122,45,.5)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto .5rem" }}>
+                                                <Shield style={{ width: 28, height: 28, color: "#9de89d" }} />
                                             </div>
-                                            <div>
-                                                <p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>Financial Information</p>
-                                                <p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Tell us about your employment and income</p>
-                                            </div>
-                                        </div>
-                                        <SectionDivider>Employment</SectionDivider>
-                                        <Field label="Employment Status" required icon={Briefcase} error={errors.employmentStatus}>
-                                            <SInput name="employmentStatus" value={form.employmentStatus} onChange={handleChange} error={errors.employmentStatus}>
-                                                <option value="">Select status</option>
-                                                <option value="employed">Employed</option>
-                                                <option value="self-employed">Self-Employed</option>
-                                                <option value="retired">Retired</option>
-                                                <option value="unemployed">Unemployed</option>
-                                            </SInput>
-                                        </Field>
-                                        <Field label="Occupation / Job Title" required icon={User} error={errors.occupation}>
-                                            <TInput name="occupation" value={form.occupation} onChange={handleChange} placeholder="e.g. Software Engineer, Business Owner" error={errors.occupation} />
-                                        </Field>
-                                        {form.employmentStatus === "self-employed" && (
-                                            <Field label="Years in Business" required icon={Calendar} error={errors.yearsInBusiness}>
-                                                <TInput name="yearsInBusiness" value={form.yearsInBusiness} onChange={handleChange} type="number" placeholder="e.g. 3" error={errors.yearsInBusiness} />
-                                            </Field>
-                                        )}
-                                        <SectionDivider>Financial Standing</SectionDivider>
-                                        <Field label="Monthly Income" required icon={DollarSign} error={errors.monthlyIncome}>
-                                            <SInput name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome}>
-                                                <option value="">Select income range</option>
-                                                <option value="below_10k">Below ₱10,000</option>
-                                                <option value="10k_20k">₱10,000 - ₱20,000</option>
-                                                <option value="20k_30k">₱20,000 - ₱30,000</option>
-                                                <option value="30k_40k">₱30,000 - ₱40,000</option>
-                                                <option value="40k_50k">₱40,000 - ₱50,000</option>
-                                                <option value="50k_60k">₱50,000 - ₱60,000</option>
-                                                <option value="60k_70k">₱60,000 - ₱70,000</option>
-                                                <option value="70k_80k">₱70,000 - ₱80,000</option>
-                                                <option value="80k_90k">₱80,000 - ₱90,000</option>
-                                                <option value="90k_100k">₱90,000 - ₱100,000</option>
-                                                <option value="above_100k">Above ₱100,000</option>
-                                            </SInput>
-                                        </Field>
-                                        <Field label="Number of Existing Loans" required icon={CreditCard}>
-                                            <SInput name="existingLoans" value={form.existingLoans} onChange={handleChange}>
-                                                <option value="0">None</option>
-                                                <option value="1">1 Active Loan</option>
-                                                <option value="2">2 Active Loans</option>
-                                                <option value="3">3 or More Loans</option>
-                                            </SInput>
-                                        </Field>
-                                        <div style={{ display: "flex", gap: "1rem", marginTop: ".75rem" }}>
-                                            <button onClick={() => navigate("/profile")} style={{ flex: 1, padding: "13px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}>Cancel</button>
-                                            <button onClick={next} style={{ flex: 2, padding: "13px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif", transition: "background .18s", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
-                                                onMouseEnter={e => e.currentTarget.style.background = C.greenLight}
-                                                onMouseLeave={e => e.currentTarget.style.background = C.green}>
-                                                Continue to ID Verification <ChevronRight style={{ width: 15, height: 15 }} />
-                                            </button>
+                                            <p style={{ fontSize: ".68rem", color: "rgba(255,255,255,.4)", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase" }}>Step {step} of 3</p>
                                         </div>
                                     </div>
-                                )}
+                                </div>
 
-                                {/* Step 2 */}
-                                {step === 2 && (
-                                    <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                <CreditCard style={{ width: 16, height: 16, color: C.green }} />
-                                            </div>
-                                            <div>
-                                                <p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>ID Verification</p>
-                                                <p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Provide a valid government-issued ID</p>
-                                            </div>
-                                        </div>
-                                        <div style={{ padding: "10px 14px", background: C.greenSoft, border: `1px solid ${C.greenBorder}`, borderRadius: 9, marginBottom: "1.25rem", display: "flex", gap: 8, alignItems: "flex-start" }}>
-                                            <Shield style={{ width: 14, height: 14, color: C.green, flexShrink: 0, marginTop: 2 }} />
-                                            <p style={{ fontSize: ".78rem", color: C.label, lineHeight: 1.5 }}>Accepted: Passport · Driver's License · UMID · SSS · GSIS · PRC · Voter's ID · Postal ID · National ID</p>
-                                        </div>
-                                        <SectionDivider>Government ID</SectionDivider>
-                                        <Field label="ID Type" required icon={FileText} error={errors.idType}>
-                                            <SInput name="idType" value={form.idType} onChange={handleChange} error={errors.idType}>
-                                                <option value="">Select ID type</option>
-                                                <option value="passport">Philippine Passport</option>
-                                                <option value="drivers">Driver's License</option>
-                                                <option value="umid">UMID</option>
-                                                <option value="sss">SSS ID</option>
-                                                <option value="gsis">GSIS ID</option>
-                                                <option value="prc">PRC ID</option>
-                                                <option value="voters">Voter's ID</option>
-                                                <option value="postal">Postal ID</option>
-                                                <option value="nationalId">National ID (PhilSys)</option>
-                                            </SInput>
-                                        </Field>
-                                        {form.idType && <p style={{ fontSize: ".72rem", color: C.muted, marginTop: -8, marginBottom: 10, paddingLeft: 4 }}>Format: {ID_RULES[form.idType]?.desc}</p>}
-                                        <Field label="ID Number" required icon={Hash} error={errors.idNumber}>
-                                            <TInput name="idNumber" value={form.idNumber} onChange={handleChange} placeholder="Enter your ID number" error={errors.idNumber} />
-                                        </Field>
-                                        {form.idNumber && form.idType && (
-                                            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: -8, marginBottom: 12 }}>
-                                                {idVal.valid
-                                                    ? <><CheckCircle style={{ width: 13, height: 13, color: C.green }} /><span style={{ fontSize: ".73rem", color: C.green, fontWeight: 600 }}>Valid format</span></>
-                                                    : <><AlertCircle style={{ width: 13, height: 13, color: C.danger }} /><span style={{ fontSize: ".73rem", color: C.danger }}>{idVal.msg}</span></>
-                                                }
-                                            </div>
-                                        )}
-                                        <SectionDivider>ID Photos</SectionDivider>
-                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: ".75rem" }}>
-                                            {[{ field: "idFront", label: "Front of ID" }, { field: "idBack", label: "Back of ID" }].map(({ field, label }) => (
-                                                <div key={field}>
-                                                    <label style={{ display: "block", fontSize: ".7rem", fontWeight: 700, color: C.muted, marginBottom: 6, letterSpacing: ".07em", textTransform: "uppercase" }}>{label} <span style={{ color: C.green }}>*</span></label>
-                                                    <div onClick={() => document.getElementById(field).click()}
-                                                        style={{ border: `2px dashed ${errors[field] ? C.danger : form[field] ? C.green : C.border}`, borderRadius: 12, padding: "1.5rem 1rem", textAlign: "center", background: errors[field] ? "#fdf0f0" : form[field] ? C.greenSoft : C.bg, cursor: "pointer", transition: "all .2s" }}
-                                                        onMouseEnter={e => { if (!form[field]) e.currentTarget.style.borderColor = C.green; }}
-                                                        onMouseLeave={e => { if (!form[field]) e.currentTarget.style.borderColor = errors[field] ? C.danger : C.border; }}>
-                                                        {form[field]
-                                                            ? <><CheckCircle style={{ width: 26, height: 26, color: C.green, marginBottom: ".4rem" }} /><p style={{ fontSize: ".76rem", color: C.green, fontWeight: 600 }}>Uploaded ✓</p><p style={{ fontSize: ".68rem", color: C.muted, marginTop: 2 }}>Click to replace</p></>
-                                                            : <><Upload style={{ width: 26, height: 26, color: C.muted, marginBottom: ".4rem" }} /><p style={{ fontSize: ".76rem", color: C.label, fontWeight: 500 }}>Click to upload</p><p style={{ fontSize: ".68rem", color: C.muted, marginTop: 2 }}>JPEG or PNG · Max 5MB</p></>
-                                                        }
-                                                        <input id={field} type="file" accept="image/*" style={{ display: "none" }} onChange={e => handleFile(e, field)} />
+                                {/* Step Progress */}
+                                <div style={{ ...anim(60), background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem 1.5rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: 0 }}>
+                                    {STEPS.map((s, i) => {
+                                        const done = step > s.n, active = step === s.n;
+                                        return (
+                                            <div key={s.n} style={{ flex: 1, display: "flex", alignItems: "center" }}>
+                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
+                                                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: done ? C.green : active ? C.sidebar : C.bg, border: `2px solid ${done || active ? C.green : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all .3s" }}>
+                                                        {done ? <CheckCircle style={{ width: 16, height: 16, color: "#fff" }} /> : <s.icon style={{ width: 15, height: 15, color: active ? "#9de89d" : C.muted }} />}
                                                     </div>
-                                                    {errors[field] && <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}><AlertCircle style={{ width: 12, height: 12, color: C.danger }} /><span style={{ fontSize: ".72rem", color: C.danger }}>{errors[field]}</span></div>}
+                                                    <span style={{ fontSize: ".68rem", fontWeight: 700, color: done || active ? C.green : C.muted, letterSpacing: ".04em", whiteSpace: "nowrap" }}>{s.label}</span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                        <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
-                                            <button onClick={goBack} style={{ flex: 1, padding: "12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontWeight: 500, fontSize: ".875rem" }}>← Back</button>
-                                            <button onClick={next} style={{ flex: 2, padding: "12px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontSize: ".875rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "background .18s" }}
-                                                onMouseEnter={e => e.currentTarget.style.background = C.greenLight}
-                                                onMouseLeave={e => e.currentTarget.style.background = C.green}>
-                                                Continue to Submit <ChevronRight style={{ width: 14, height: 14 }} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                                {i < STEPS.length - 1 && <div style={{ flex: 1, height: 2, background: step > s.n ? C.green : C.border, transition: "background .3s", margin: "0 8px", marginBottom: 22 }} />}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
 
-                                {/* Step 3 */}
-                                {step === 3 && (
-                                    <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
-                                            <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                <CheckCircle style={{ width: 16, height: 16, color: C.green }} />
+                                {/* Two-column layout */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "1.25rem", alignItems: "start" }}>
+                                    <div style={anim(100)}>
+                                        {/* Step 1 */}
+                                        {step === 1 && (
+                                            <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
+                                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}><Briefcase style={{ width: 16, height: 16, color: C.green }} /></div>
+                                                    <div><p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>Financial Information</p><p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Tell us about your employment and income</p></div>
+                                                </div>
+                                                <SectionDivider>Employment</SectionDivider>
+                                                <Field label="Employment Status" required icon={Briefcase} error={errors.employmentStatus}>
+                                                    <SInput name="employmentStatus" value={form.employmentStatus} onChange={handleChange} error={errors.employmentStatus}>
+                                                        <option value="">Select status</option>
+                                                        <option value="employed">Employed</option>
+                                                        <option value="self-employed">Self-Employed</option>
+                                                        <option value="retired">Retired</option>
+                                                        <option value="unemployed">Unemployed</option>
+                                                    </SInput>
+                                                </Field>
+                                                <Field label="Occupation / Job Title" required icon={User} error={errors.occupation}>
+                                                    <TInput name="occupation" value={form.occupation} onChange={handleChange} placeholder="e.g. Software Engineer, Business Owner" error={errors.occupation} />
+                                                </Field>
+                                                {form.employmentStatus === "self-employed" && (
+                                                    <Field label="Years in Business" required icon={Calendar} error={errors.yearsInBusiness}>
+                                                        <TInput name="yearsInBusiness" value={form.yearsInBusiness} onChange={handleChange} type="number" placeholder="e.g. 3" error={errors.yearsInBusiness} />
+                                                    </Field>
+                                                )}
+                                                <SectionDivider>Financial Standing</SectionDivider>
+                                                <Field label="Monthly Income" required icon={DollarSign} error={errors.monthlyIncome}>
+                                                    <SInput name="monthlyIncome" value={form.monthlyIncome} onChange={handleChange} error={errors.monthlyIncome}>
+                                                        <option value="">Select income range</option>
+                                                        <option value="below_10k">Below ₱10,000</option>
+                                                        <option value="10k_20k">₱10,000 - ₱20,000</option>
+                                                        <option value="20k_30k">₱20,000 - ₱30,000</option>
+                                                        <option value="30k_40k">₱30,000 - ₱40,000</option>
+                                                        <option value="40k_50k">₱40,000 - ₱50,000</option>
+                                                        <option value="50k_60k">₱50,000 - ₱60,000</option>
+                                                        <option value="60k_70k">₱60,000 - ₱70,000</option>
+                                                        <option value="70k_80k">₱70,000 - ₱80,000</option>
+                                                        <option value="80k_90k">₱80,000 - ₱90,000</option>
+                                                        <option value="90k_100k">₱90,000 - ₱100,000</option>
+                                                        <option value="above_100k">Above ₱100,000</option>
+                                                    </SInput>
+                                                </Field>
+                                                <Field label="Number of Existing Loans" required icon={CreditCard}>
+                                                    <SInput name="existingLoans" value={form.existingLoans} onChange={handleChange}>
+                                                        <option value="0">None</option>
+                                                        <option value="1">1 Active Loan</option>
+                                                        <option value="2">2 Active Loans</option>
+                                                        <option value="3">3 or More Loans</option>
+                                                    </SInput>
+                                                </Field>
+                                                <div style={{ display: "flex", gap: "1rem", marginTop: ".75rem" }}>
+                                                    <button onClick={() => navigate("/profile")} style={{ flex: 1, padding: "13px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}>Cancel</button>
+                                                    <button onClick={next} style={{ flex: 2, padding: "13px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = C.greenLight} onMouseLeave={e => e.currentTarget.style.background = C.green}>
+                                                        Continue to ID Verification <ChevronRight style={{ width: 15, height: 15 }} />
+                                                    </button>
+                                                </div>
                                             </div>
+                                        )}
+
+                                        {/* Step 2 */}
+                                        {step === 2 && (
+                                            <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
+                                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}><CreditCard style={{ width: 16, height: 16, color: C.green }} /></div>
+                                                    <div><p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>ID Verification</p><p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Provide a valid government-issued ID</p></div>
+                                                </div>
+                                                <div style={{ padding: "10px 14px", background: C.greenSoft, border: `1px solid ${C.greenBorder}`, borderRadius: 9, marginBottom: "1.25rem", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                                    <Shield style={{ width: 14, height: 14, color: C.green, flexShrink: 0, marginTop: 2 }} />
+                                                    <p style={{ fontSize: ".78rem", color: C.label, lineHeight: 1.5 }}>Accepted: Passport · Driver's License · UMID · SSS · GSIS · PRC · Voter's ID · Postal ID · National ID</p>
+                                                </div>
+                                                <SectionDivider>Government ID</SectionDivider>
+                                                <Field label="ID Type" required icon={FileText} error={errors.idType}>
+                                                    <SInput name="idType" value={form.idType} onChange={handleChange} error={errors.idType}>
+                                                        <option value="">Select ID type</option>
+                                                        <option value="passport">Philippine Passport</option>
+                                                        <option value="drivers">Driver's License</option>
+                                                        <option value="umid">UMID</option>
+                                                        <option value="sss">SSS ID</option>
+                                                        <option value="gsis">GSIS ID</option>
+                                                        <option value="prc">PRC ID</option>
+                                                        <option value="voters">Voter's ID</option>
+                                                        <option value="postal">Postal ID</option>
+                                                        <option value="nationalId">National ID (PhilSys)</option>
+                                                    </SInput>
+                                                </Field>
+                                                {form.idType && <p style={{ fontSize: ".72rem", color: C.muted, marginTop: -8, marginBottom: 10, paddingLeft: 4 }}>Format: {ID_RULES[form.idType]?.desc}</p>}
+                                                <Field label="ID Number" required icon={Hash} error={errors.idNumber}>
+                                                    <TInput name="idNumber" value={form.idNumber} onChange={handleChange} placeholder="Enter your ID number" error={errors.idNumber} />
+                                                </Field>
+                                                {form.idNumber && form.idType && (
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: -8, marginBottom: 12 }}>
+                                                        {idVal.valid ? <><CheckCircle style={{ width: 13, height: 13, color: C.green }} /><span style={{ fontSize: ".73rem", color: C.green, fontWeight: 600 }}>Valid format</span></>
+                                                            : <><AlertCircle style={{ width: 13, height: 13, color: C.danger }} /><span style={{ fontSize: ".73rem", color: C.danger }}>{idVal.msg}</span></>}
+                                                    </div>
+                                                )}
+                                                <SectionDivider>ID Photos</SectionDivider>
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: ".75rem" }}>
+                                                    {[{ field: "idFront", label: "Front of ID" }, { field: "idBack", label: "Back of ID" }].map(({ field, label }) => (
+                                                        <div key={field}>
+                                                            <label style={{ display: "block", fontSize: ".7rem", fontWeight: 700, color: C.muted, marginBottom: 6, letterSpacing: ".07em", textTransform: "uppercase" }}>{label} <span style={{ color: C.green }}>*</span></label>
+                                                            <div onClick={() => document.getElementById(field).click()}
+                                                                style={{ border: `2px dashed ${errors[field] ? C.danger : form[field] ? C.green : C.border}`, borderRadius: 12, padding: "1.5rem 1rem", textAlign: "center", background: errors[field] ? "#fdf0f0" : form[field] ? C.greenSoft : C.bg, cursor: "pointer", transition: "all .2s" }}
+                                                                onMouseEnter={e => { if (!form[field]) e.currentTarget.style.borderColor = C.green; }}
+                                                                onMouseLeave={e => { if (!form[field]) e.currentTarget.style.borderColor = errors[field] ? C.danger : C.border; }}>
+                                                                {form[field] ? <><CheckCircle style={{ width: 26, height: 26, color: C.green, marginBottom: ".4rem" }} /><p style={{ fontSize: ".76rem", color: C.green, fontWeight: 600 }}>Uploaded ✓</p><p style={{ fontSize: ".68rem", color: C.muted, marginTop: 2 }}>Click to replace</p></>
+                                                                    : <><Upload style={{ width: 26, height: 26, color: C.muted, marginBottom: ".4rem" }} /><p style={{ fontSize: ".76rem", color: C.label, fontWeight: 500 }}>Click to upload</p><p style={{ fontSize: ".68rem", color: C.muted, marginTop: 2 }}>JPEG or PNG · Max 5MB</p></>}
+                                                                <input id={field} type="file" accept="image/*" style={{ display: "none" }} onChange={e => handleFile(e, field)} />
+                                                            </div>
+                                                            {errors[field] && <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}><AlertCircle style={{ width: 12, height: 12, color: C.danger }} /><span style={{ fontSize: ".72rem", color: C.danger }}>{errors[field]}</span></div>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                                                    <button onClick={goBack} style={{ flex: 1, padding: "12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontWeight: 500, fontSize: ".875rem" }}>← Back</button>
+                                                    <button onClick={next} style={{ flex: 2, padding: "12px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontSize: ".875rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = C.greenLight} onMouseLeave={e => e.currentTarget.style.background = C.green}>
+                                                        Continue to Submit <ChevronRight style={{ width: 14, height: 14 }} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step 3 */}
+                                        {step === 3 && (
+                                            <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.75rem" }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: `1px solid ${C.border}` }}>
+                                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: C.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}><CheckCircle style={{ width: 16, height: 16, color: C.green }} /></div>
+                                                    <div><p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>Ready to Submit</p><p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Your information is complete</p></div>
+                                                </div>
+                                                <CreditScoreCard score={computedScore} />
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1.25rem" }}>
+                                                    <div style={{ padding: "1rem 1.25rem", background: C.bg, borderRadius: 12, border: `1px solid ${C.border}` }}>
+                                                        <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.green, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".75rem" }}>Financial</p>
+                                                        {[["Status", form.employmentStatus], ["Occupation", form.occupation], ["Income", getIncomeDisplayText(form.monthlyIncome)], ["Active Loans", form.existingLoans === "0" ? "None" : form.existingLoans === "1" ? "1 Loan" : form.existingLoans === "2" ? "2 Loans" : "3+ Loans"]].map(([k, v]) => (
+                                                            <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: ".5rem" }}>
+                                                                <span style={{ fontSize: ".76rem", color: C.muted }}>{k}</span>
+                                                                <span style={{ fontSize: ".76rem", color: C.text, fontWeight: 600, textTransform: "capitalize" }}>{v}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div style={{ padding: "1rem 1.25rem", background: C.bg, borderRadius: 12, border: `1px solid ${C.border}` }}>
+                                                        <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.green, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".75rem" }}>Identity</p>
+                                                        {[["ID Type", form.idType], ["ID Number", `****${form.idNumber?.slice(-4)}`], ["Front", form.idFront ? "✓ Uploaded" : "—"], ["Back", form.idBack ? "✓ Uploaded" : "—"]].map(([k, v]) => (
+                                                            <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: ".5rem" }}>
+                                                                <span style={{ fontSize: ".76rem", color: C.muted }}>{k}</span>
+                                                                <span style={{ fontSize: ".76rem", color: v?.includes("✓") ? C.green : C.text, fontWeight: 600, textTransform: "capitalize" }}>{v}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div style={{ marginTop: "1.25rem", padding: "1rem 1.25rem", background: risk.bg, border: `1.5px solid ${risk.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+                                                    {computedScore >= 650 ? <CheckCircle style={{ width: 18, height: 18, color: risk.color, flexShrink: 0 }} /> : <AlertTriangle style={{ width: 18, height: 18, color: risk.color, flexShrink: 0 }} />}
+                                                    <div>
+                                                        <p style={{ fontSize: ".82rem", fontWeight: 700, color: risk.color }}>{risk.level}</p>
+                                                        <p style={{ fontSize: ".76rem", color: risk.color, opacity: .85, marginTop: 2 }}>{risk.recommendation}</p>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: "flex", gap: "1rem", marginTop: "1.25rem" }}>
+                                                    <button onClick={goBack} style={{ flex: 1, padding: "12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontWeight: 500, fontSize: ".875rem" }}>← Back</button>
+                                                    <button onClick={handleSubmit} style={{ flex: 2, padding: "13px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = C.greenLight} onMouseLeave={e => e.currentTarget.style.background = C.green}>
+                                                        <Shield style={{ width: 15, height: 15 }} /> Submit Verification
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Right Sidebar */}
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem", ...anim(160) }}>
+                                        {form.monthlyIncome && (
                                             <div>
-                                                <p style={{ fontFamily: "'Lora', serif", fontSize: ".9rem", fontWeight: 600, color: C.text }}>Ready to Submit</p>
-                                                <p style={{ fontSize: ".73rem", color: C.muted, marginTop: 2 }}>Your information is complete</p>
+                                                <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".6rem" }}>Live Score Preview</p>
+                                                <CreditScoreCard score={computedScore} compact />
                                             </div>
-                                        </div>
-                                        <CreditScoreCard score={computedScore} />
-                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1.25rem" }}>
-                                            <div style={{ padding: "1rem 1.25rem", background: C.bg, borderRadius: 12, border: `1px solid ${C.border}` }}>
-                                                <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.green, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".75rem" }}>Financial</p>
-                                                {[["Status", form.employmentStatus], ["Occupation", form.occupation], ["Income", getIncomeDisplayText(form.monthlyIncome)], ["Active Loans", form.existingLoans === "0" ? "None" : form.existingLoans === "1" ? "1 Loan" : form.existingLoans === "2" ? "2 Loans" : "3+ Loans"]].map(([k, v]) => (
-                                                    <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: ".5rem" }}>
-                                                        <span style={{ fontSize: ".76rem", color: C.muted }}>{k}</span>
-                                                        <span style={{ fontSize: ".76rem", color: C.text, fontWeight: 600, textTransform: "capitalize" }}>{v}</span>
+                                        )}
+                                        <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem" }}>
+                                            <p style={{ fontSize: ".72rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".85rem" }}>What to Expect</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
+                                                {[{ icon: DollarSign, label: "Financial Info", desc: "Employment & income details" }, { icon: CreditCard, label: "ID Verification", desc: "Government-issued ID + photos" }, { icon: TrendingUp, label: "Credit Score", desc: "Instant score calculation" }].map((item, i) => (
+                                                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                                                        <div style={{ width: 30, height: 30, borderRadius: 8, background: step > i + 1 ? C.greenSoft : step === i + 1 ? C.sidebar : C.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                                            <item.icon style={{ width: 13, height: 13, color: step > i + 1 ? C.green : step === i + 1 ? "#9de89d" : C.muted }} />
+                                                        </div>
+                                                        <div>
+                                                            <p style={{ fontSize: ".78rem", fontWeight: 600, color: step >= i + 1 ? C.text : C.muted }}>{item.label}</p>
+                                                            <p style={{ fontSize: ".68rem", color: C.muted, marginTop: 1 }}>{item.desc}</p>
+                                                        </div>
+                                                        {step > i + 1 && <CheckCircle style={{ width: 14, height: 14, color: C.green, flexShrink: 0, marginLeft: "auto", marginTop: 3 }} />}
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div style={{ padding: "1rem 1.25rem", background: C.bg, borderRadius: 12, border: `1px solid ${C.border}` }}>
-                                                <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.green, letterSpacing: ".1em", textTransform: "uppercase", marginBottom: ".75rem" }}>Identity</p>
-                                                {[["ID Type", form.idType], ["ID Number", `****${form.idNumber?.slice(-4)}`], ["Front", form.idFront ? "✓ Uploaded" : "—"], ["Back", form.idBack ? "✓ Uploaded" : "—"]].map(([k, v]) => (
-                                                    <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: ".5rem" }}>
-                                                        <span style={{ fontSize: ".76rem", color: C.muted }}>{k}</span>
-                                                        <span style={{ fontSize: ".76rem", color: v?.includes("✓") ? C.green : C.text, fontWeight: 600, textTransform: "capitalize" }}>{v}</span>
+                                        </div>
+                                        <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem" }}>
+                                            <p style={{ fontSize: ".72rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".85rem" }}>Score Guide</p>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+                                                {[{ range: "750–850", label: "Low Risk", color: C.green }, { range: "650–749", label: "Medium Risk", color: C.warning }, { range: "500–649", label: "High Risk", color: C.danger }].map(s => (
+                                                    <div key={s.range} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
+                                                        <span style={{ fontSize: ".75rem", color: C.label }}>{s.label}</span>
+                                                        <span style={{ fontSize: ".72rem", color: C.muted, marginLeft: "auto", fontFamily: "monospace" }}>{s.range}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
-                                        <div style={{ marginTop: "1.25rem", padding: "1rem 1.25rem", background: risk.bg, border: `1.5px solid ${risk.border}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
-                                            {computedScore >= 650
-                                                ? <CheckCircle style={{ width: 18, height: 18, color: risk.color, flexShrink: 0 }} />
-                                                : <AlertTriangle style={{ width: 18, height: 18, color: risk.color, flexShrink: 0 }} />
-                                            }
-                                            <div>
-                                                <p style={{ fontSize: ".82rem", fontWeight: 700, color: risk.color }}>{risk.level}</p>
-                                                <p style={{ fontSize: ".76rem", color: risk.color, opacity: .85, marginTop: 2 }}>{risk.recommendation}</p>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: "flex", gap: "1rem", marginTop: "1.25rem" }}>
-                                            <button onClick={goBack} style={{ flex: 1, padding: "12px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: C.white, color: C.label, cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontWeight: 500, fontSize: ".875rem" }}>← Back</button>
-                                            <button onClick={handleSubmit} style={{ flex: 2, padding: "13px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontWeight: 600, fontSize: ".9rem", cursor: "pointer", fontFamily: "'Outfit',sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, transition: "background .18s" }}
-                                                onMouseEnter={e => e.currentTarget.style.background = C.greenLight}
-                                                onMouseLeave={e => e.currentTarget.style.background = C.green}>
-                                                <Shield style={{ width: 15, height: 15 }} /> Submit Verification
-                                            </button>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 12px", background: C.greenSoft, borderRadius: 9, border: `1px solid ${C.greenBorder}` }}>
+                                            <Shield style={{ width: 13, height: 13, color: C.green, flexShrink: 0 }} />
+                                            <span style={{ fontSize: ".72rem", color: C.label }}>Your data is encrypted and stored securely.</span>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* Right Sidebar */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem", ...anim(160) }}>
-                                {form.monthlyIncome && (
-                                    <div>
-                                        <p style={{ fontSize: ".68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".6rem" }}>Live Score Preview</p>
-                                        <CreditScoreCard score={computedScore} compact />
-                                    </div>
-                                )}
-                                <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem" }}>
-                                    <p style={{ fontSize: ".72rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".85rem" }}>What to Expect</p>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
-                                        {[
-                                            { icon: DollarSign, label: "Financial Info", desc: "Employment & income details" },
-                                            { icon: CreditCard, label: "ID Verification", desc: "Government-issued ID + photos" },
-                                            { icon: TrendingUp, label: "Credit Score", desc: "Instant score calculation" },
-                                        ].map((item, i) => (
-                                            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                                                <div style={{ width: 30, height: 30, borderRadius: 8, background: step > i + 1 ? C.greenSoft : step === i + 1 ? C.sidebar : C.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                                    <item.icon style={{ width: 13, height: 13, color: step > i + 1 ? C.green : step === i + 1 ? "#9de89d" : C.muted }} />
-                                                </div>
-                                                <div>
-                                                    <p style={{ fontSize: ".78rem", fontWeight: 600, color: step >= i + 1 ? C.text : C.muted }}>{item.label}</p>
-                                                    <p style={{ fontSize: ".68rem", color: C.muted, marginTop: 1 }}>{item.desc}</p>
-                                                </div>
-                                                {step > i + 1 && <CheckCircle style={{ width: 14, height: 14, color: C.green, flexShrink: 0, marginLeft: "auto", marginTop: 3 }} />}
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
-                                <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: "1.25rem" }}>
-                                    <p style={{ fontSize: ".72rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: ".85rem" }}>Score Guide</p>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
-                                        {[
-                                            { range: "750–850", label: "Low Risk", color: C.green },
-                                            { range: "650–749", label: "Medium Risk", color: C.warning },
-                                            { range: "500–649", label: "High Risk", color: C.danger },
-                                        ].map(s => (
-                                            <div key={s.range} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
-                                                <span style={{ fontSize: ".75rem", color: C.label }}>{s.label}</span>
-                                                <span style={{ fontSize: ".72rem", color: C.muted, marginLeft: "auto", fontFamily: "monospace" }}>{s.range}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 12px", background: C.greenSoft, borderRadius: 9, border: `1px solid ${C.greenBorder}` }}>
-                                    <Shield style={{ width: 13, height: 13, color: C.green, flexShrink: 0 }} />
-                                    <span style={{ fontSize: ".72rem", color: C.label }}>Your data is encrypted and stored securely.</span>
-                                </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
                     </main>
                 </div>
             </div>
